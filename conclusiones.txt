@@ -1,0 +1,106 @@
+# PRUEBA TÉCNICA 
+## EJERCICIO 1 - CONCLUSIONES DE PERFORMANCE
+
+### 1. Objetivo
+
+Evaluar el rendimiento del servicio de autenticación de Fake Store API mediante una prueba de carga automatizada con Grafana k6.
+
+Se utilizaron cinco usuarios parametrizados desde un archivo CSV, según los datos proporcionados en la consigna.
+
+Los criterios de aceptación fueron:
+
+- Alcanzar al menos 20 transacciones por segundo (TPS).
+- Mantener un tiempo máximo de respuesta de 1.500 milisegundos.
+- Registrar una tasa de errores inferior al 3 %.
+
+### 2. Metodología
+
+Se implementó un script en JavaScript utilizando Grafana k6 2.4.0.
+
+La prueba se realizó sobre el endpoint POST https://fakestoreapi.com/auth/login.
+
+Se utilizó el ejecutor constant-arrival-rate para controlar la tasa de inicio de iteraciones, con 30 usuarios virtuales preasignados y un máximo de 60.
+
+Antes de ejecutar la carga, se realizaron pruebas funcionales individuales con los cinco usuarios, obteniendo respuestas HTTP 201 con tokens de autenticación válidos según las verificaciones implementadas.
+
+Posteriormente, se realizaron dos ejecuciones de carga de 30 segundos cada una.
+
+### 3. Resultados obtenidos
+
+| Métrica | Primera ejecución | Segunda ejecución |
+|---|---|---|
+| Carga configurada | 20 iteraciones/s | 21 iteraciones/s |
+| Solicitudes completadas | 601 | 631 |
+| TPS promedio medido | 19,779 | 20,541 |
+| Tiempo promedio | 413,65 ms | 416,02 ms |
+| Tiempo máximo | 732,28 ms | 706,06 ms |
+| Errores HTTP | 0 % | 0 % |
+
+En la segunda ejecución también se registraron:
+
+- Percentil 90: 450,02 ms.
+- Percentil 95: 485,16 ms.
+- Errores de autenticación: 0 %.
+- Iteraciones descartadas: 0.
+
+### 4. Hallazgos
+
+**Hallazgo 1. Rendimiento en TPS**
+
+La primera ejecución fue configurada a 20 iteraciones por segundo, pero la tasa media medida por k6 fue de 19,779 solicitudes por segundo.
+
+Por lo tanto, no cumplió el requisito mínimo de 20 TPS.
+
+Se realizó una segunda ejecución ajustando la tasa configurada a 21 iteraciones por segundo, sin modificar los umbrales de aceptación.
+
+Esta segunda ejecución alcanzó 20,541 TPS promedio y cumplió el requisito.
+
+**Hallazgo 2. Tiempo de respuesta**
+
+El tiempo máximo registrado durante la segunda ejecución fue de 706,06 ms, inferior al límite permitido de 1.500 ms.
+
+El tiempo promedio fue de 416,02 ms y el percentil 95 de 485,16 ms.
+
+El servicio cumplió el criterio de tiempo de respuesta durante la ejecución evaluada.
+
+**Hallazgo 3. Tasa de errores**
+
+En la segunda ejecución se completaron 631 solicitudes sin errores HTTP registrados por k6.
+
+La métrica personalizada de errores de autenticación también registró una tasa del 0 %.
+
+Por lo tanto, se cumplió el criterio de errores inferior al 3 %.
+
+**Hallazgo 4. Ejecución de la carga**
+
+La segunda ejecución finalizó sin iteraciones descartadas ni interrumpidas.
+
+Esto indica que la configuración de usuarios virtuales fue suficiente para sostener la tasa de inicio de iteraciones prevista durante el escenario evaluado.
+
+### 5. Evaluación de los criterios de aceptación
+
+| Criterio | Resultado final | Estado |
+|---|---|---|
+| TPS mínimo de 20 | 20,541 TPS | CUMPLE |
+| Tiempo máximo de 1.500 ms | 706,06 ms | CUMPLE |
+| Errores inferiores al 3 % | 0 % | CUMPLE |
+
+### 6. Limitaciones
+
+Los resultados corresponden a pruebas realizadas contra una API pública y pueden variar según las condiciones de red, la disponibilidad del servicio y la carga concurrente de otros usuarios.
+
+La duración de cada ejecución fue de 30 segundos. Por lo tanto, los resultados permiten evaluar el comportamiento durante ese período, pero no demuestran estabilidad bajo carga sostenida durante intervalos prolongados.
+
+Las mediciones se realizaron desde un único entorno de ejecución.
+
+### 7. Conclusión general
+
+La prueba de carga implementada con Grafana k6 permitió automatizar solicitudes de autenticación utilizando cinco usuarios parametrizados desde un archivo CSV.
+
+En la primera ejecución se cumplieron los criterios de tiempo y errores, aunque la tasa media quedó ligeramente por debajo del mínimo requerido.
+
+Tras ajustar la tasa de inicio a 21 iteraciones por segundo, la segunda ejecución alcanzó 20,541 TPS, registró un tiempo máximo de respuesta de 706,06 ms y presentó una tasa de errores del 0 %.
+
+**Se concluye que el servicio cumplió los tres criterios de aceptación establecidos para el ejercicio durante la segunda ejecución.**
+
+Los scripts, datos de entrada y evidencias se incluyen en el repositorio para facilitar la revisión y reproducción de la prueba.
